@@ -8,13 +8,19 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Save } from "lucide-react";
+import RenusCoreConfig from "@/components/config/RenusCoreConfig";
 
 const ConfigPage: React.FC = () => {
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-foreground">Configurações do Sistema RENUS</h1>
 
-      {/* Sub-Agentes Section */}
+      {/* Bloco 1: Agente Principal (RENUS Core) */}
+      <RenusCoreConfig />
+
+      <Separator className="bg-border/50" />
+
+      {/* Bloco 2: Sub-Agentes Section */}
       <Card className="bg-secondary/30 border-primary/20">
         <CardHeader>
           <CardTitle>Sub-Agentes (Nichos)</CardTitle>
@@ -61,7 +67,7 @@ const ConfigPage: React.FC = () => {
 
       <Separator className="bg-border/50" />
 
-      {/* Sistema Section */}
+      {/* Bloco 3: Sistema Section */}
       <Card className="bg-secondary/30 border-primary/20">
         <CardHeader>
           <CardTitle>Sistema</CardTitle>
