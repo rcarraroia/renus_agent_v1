@@ -1,18 +1,36 @@
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, FileText } from "lucide-react";
+import { CalendarIcon, FileText, Loader2 } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
+import { handleError } from "@/lib/error-handler";
 
-const mockLeads = [
-  { id: 1, nome: "Ana Silva", email: "ana@ex.com", whatsapp: "9999-0001", nicho: "MMN", data: "2024-10-01" },
-  { id: 2, nome: "Bruno Costa", email: "bruno@ex.com", whatsapp: "9999-0002", nicho: "Saúde", data: "2024-10-02" },
-  { id: 3, nome: "Carla Dias", email: "carla@ex.com", whatsapp: "9999-0003", nicho: "Imobiliária", data: "2024-10-03" },
-];
+interface Lead {
+  id: string;
+  nome: string;
+  email: string;
+  whatsapp: string;
+  nicho: string;
+  data: string;
+}
 
 const LeadsPage: React.FC = () => {
+  // Fetch leads from API
+  const { data: leads, isLoading, error } = useQuery<Lead[]>({
+    queryKey: ['leads'],
+    queryFn: async () => {
+      try {
+        return await apiClient.get<Lead[]>('/api/v1/leads');
+      } catch (err) {
+        handleError(err, 'Falha ao carregar leads');
+        throw err;
+      }
+    },
+  });
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-foreground">Leads Coletados</h1>
@@ -54,29 +72,44 @@ const LeadsPage: React.FC = () => {
           <CardTitle>Lista de Leads</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-secondary/50">
-                {["Nome", "E-mail", "WhatsApp", "Nicho", "Data", "Ações"].map((header) => (
-                  <TableHead key={header} className="text-primary">{header}</TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockLeads.map((lead) => (
-                <TableRow key={lead.id} className="hover:bg-secondary/50">
-                  <TableCell className="font-medium">{lead.nome}</TableCell>
-                  <TableCell>{lead.email}</TableCell>
-                  <TableCell>{lead.whatsapp}</TableCell>
-                  <TableCell>{lead.nicho}</TableCell>
-                  <TableCell>{lead.data}</TableCell>
-                  <TableCell>
-                    <Button variant="link" className="text-primary p-0 h-auto">Visualizar</Button>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2 text-muted-foreground">Carregando leads...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-destructive">
+              Erro ao carregar leads. Tente novamente.
+            </div>
+          ) : !leads || leads.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Nenhum lead encontrado.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-secondary/50">
+                  {["Nome", "E-mail", "WhatsApp", "Nicho", "Data", "Ações"].map((header) => (
+                    <TableHead key={header} className="text-primary">{header}</TableHead>
+                  ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {leads.map((lead) => (
+                  <TableRow key={lead.id} className="hover:bg-secondary/50">
+                    <TableCell className="font-medium">{lead.nome}</TableCell>
+                    <TableCell>{lead.email}</TableCell>
+                    <TableCell>{lead.whatsapp}</TableCell>
+                    <TableCell>{lead.nicho}</TableCell>
+                    <TableCell>{lead.data}</TableCell>
+                    <TableCell>
+                      <Button variant="link" className="text-primary p-0 h-auto">Visualizar</Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
