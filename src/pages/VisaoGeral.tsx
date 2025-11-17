@@ -2,33 +2,8 @@ import React from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Bar } from "recharts";
-import { DollarSign, Users, CheckCircle, Zap } from "lucide-react";
-
-// Mock Data
-const statsData = [
-  { label: "Interações", value: "1.248", icon: Zap, color: "text-primary" },
-  { label: "Leads", value: "642", icon: Users, color: "text-green-400" },
-  { label: "Taxa de Conclusão", value: "82%", icon: CheckCircle, color: "text-yellow-400" },
-  { label: "Nichos Ativos", value: "5", icon: DollarSign, color: "text-red-400" },
-];
-
-const activityData = [
-  { name: 'Seg', value: 400 },
-  { name: 'Ter', value: 300 },
-  { name: 'Qua', value: 200 },
-  { name: 'Qui', value: 278 },
-  { name: 'Sex', value: 189 },
-  { name: 'Sáb', value: 239 },
-  { name: 'Dom', value: 349 },
-];
-
-const nicheData = [
-  { name: 'MMN', value: 400, color: '#00d8ff' },
-  { name: 'Saúde', value: 300, color: '#8884d8' },
-  { name: 'Imobiliária', value: 300, color: '#82ca9d' },
-  { name: 'Prof. Liberal', value: 200, color: '#ffc658' },
-  { name: 'Outros', value: 100, color: '#ff7300' },
-];
+import { DollarSign, Users, CheckCircle, Zap, Loader2 } from "lucide-react";
+import { useDashboard } from "@/hooks/useDashboard";
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
@@ -43,8 +18,32 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
   );
 };
 
-
 const VisaoGeralPage = () => {
+  const { data: dashboard, isLoading, error } = useDashboard();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Carregando dashboard...</span>
+      </div>
+    );
+  }
+
+  if (error || !dashboard) {
+    return (
+      <div className="text-center py-8 text-destructive">
+        Erro ao carregar dashboard. Tente novamente.
+      </div>
+    );
+  }
+
+  const statsData = [
+    { label: "Interações", value: dashboard.stats.interacoes.toString(), icon: Zap, color: "text-primary" },
+    { label: "Leads", value: dashboard.stats.leads.toString(), icon: Users, color: "text-green-400" },
+    { label: "Taxa de Conclusão", value: `${dashboard.stats.taxa_conclusao}%`, icon: CheckCircle, color: "text-yellow-400" },
+    { label: "Nichos Ativos", value: dashboard.stats.nichos_ativos.toString(), icon: DollarSign, color: "text-red-400" },
+  ];
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-foreground">Visão Geral do RENUS</h1>
@@ -74,7 +73,7 @@ const VisaoGeralPage = () => {
           </CardHeader>
           <CardContent className="h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={activityData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+              <LineChart data={dashboard.activity} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" />
                 <XAxis dataKey="name" stroke="#999" />
                 <YAxis stroke="#999" />
@@ -97,7 +96,7 @@ const VisaoGeralPage = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={nicheData}
+                  data={dashboard.niches}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -106,7 +105,7 @@ const VisaoGeralPage = () => {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {nicheData.map((entry, index) => (
+                  {dashboard.niches.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>

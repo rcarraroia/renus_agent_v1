@@ -1,15 +1,27 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { List, TrendingUp } from "lucide-react";
-
-const trends = [
-    "Automação de follow-up",
-    "Gestão de metas",
-    "Gamificação",
-    "Integração com redes sociais",
-];
+import { List, TrendingUp, Loader2 } from "lucide-react";
+import { useInsights } from "@/hooks/useInsights";
 
 const InsightsPage: React.FC = () => {
+  const { data: insights, isLoading, error } = useInsights();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Carregando insights...</span>
+      </div>
+    );
+  }
+
+  if (error || !insights) {
+    return (
+      <div className="text-center py-8 text-destructive">
+        Erro ao carregar insights. Tente novamente.
+      </div>
+    );
+  }
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-foreground">Insights e Recomendações</h1>
@@ -21,7 +33,7 @@ const InsightsPage: React.FC = () => {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground leading-relaxed">
-            A análise das últimas 1000 interações indica uma forte demanda por ferramentas de automação de processos internos (75% das menções). O nicho de MMN demonstrou maior insatisfação com a falta de integração com plataformas de gestão de leads existentes.
+            {insights.resumo}
           </p>
         </CardContent>
       </Card>
@@ -34,7 +46,7 @@ const InsightsPage: React.FC = () => {
         <CardContent>
           <div className="p-4 bg-background/50 rounded-lg border border-border">
             <p className="text-sm text-foreground">
-              Priorizar o desenvolvimento da funcionalidade de integração com CRM/ERP para o nicho MMN. Sugere-se também a criação de um módulo de gamificação para aumentar o engajamento dos agentes, conforme tendência observada.
+              {insights.recomendacoes}
             </p>
           </div>
         </CardContent>
@@ -48,7 +60,7 @@ const InsightsPage: React.FC = () => {
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
-            {trends.map((trend, index) => (
+            {insights.tendencias.map((trend, index) => (
               <li key={index} className="flex items-center text-foreground/80">
                 <List className="h-4 w-4 mr-3 text-primary/70 flex-shrink-0" />
                 {trend}
